@@ -19,7 +19,8 @@ function returnToStorage()
   i = 0
   turtle.turnRight()
   while i < turns do
-    turtle.forwad()
+    turtle.forward()
+    i = i + 1
   end
 
   checkFuel()
@@ -28,17 +29,23 @@ function returnToStorage()
   turtle.turnRight()
   while i < forwards do
     turtle.forward()
+    i = i + 1
   end
 
-  i = 0
-  while i < inventory_space do
+  i = 1
+  while not (i > inventory_space) do
     turtle.select(i)
     table = turtle.getItemDetail(i)
-      if not table.tags["minecraft:charcoal"] then
-        local chest = peripheral.find("minecraft:chest")
-          turtle.drop()
+    
+    if table ~= nil then
+      if table.tags ~= nil then
+        if table.tags["minecraft:coal"] ~= nil then
+            local chest = peripheral.find("minecraft:chest")
+              turtle.drop()
+        end
+        i = i + 1
       end
-      i = i + 1
+    end
   end
 end
 
@@ -46,14 +53,15 @@ end
 function checkFuel()
     if turtle.getFuelLevel() < turtle.getFuelLimit() then
         local could_refuel = false
-        local i = 0
+        local i = 1
         
-        while i < inventory_space do
+        while not (i > inventory_space) do
             turtle.select(i)
             if turtle.refuel(0) then
                 turtle.refuel()
                 return true
             end
+            i = i + 1
         end        
     end
     
@@ -61,14 +69,15 @@ function checkFuel()
 end
 
 function keepItem()
-  local i = 0
+  local i = 1
         
-  while i < inventory_space do
+  while not (i < inventory_space) do
       table = turtle.getItemDetail(i)
       if table.tags["minecraft:stone"] or table.tags["minecraft:stones"] then
         select(i)
         drop(i)
       end
+      i = i + 1
   end        
 end
 
@@ -79,9 +88,9 @@ function mine(forward, left, down)
 
   local last_turn_was_left = false
 
-  while downs < down do
-    while turns < left do
-      while forwards < forward do
+  while downs <= down do
+    while turns <= left do
+      while forwards <= forward do
         if turtle.detect() == true then
           turtle.dig()
           if turtle.suck() then
@@ -92,11 +101,11 @@ function mine(forward, left, down)
             returnToStorage()         
           end
         end
-        turtle.forwad()
+        turtle.forward()
         forwards = forwards + 1
       end
 
-      if last_turn_was_left then
+      if not last_turn_was_left then
         turtle.turnLeft()
         if turtle.detect() == true then
           turtle.dig()
