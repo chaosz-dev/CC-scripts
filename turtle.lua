@@ -1,8 +1,9 @@
 keep_stone = false
 inventory_space = 16
 
+distance_from_start = 0
 forwards = 0
-turns = 0
+lefts = 0
 downs = 0
 
 function returnToStorage()
@@ -54,7 +55,7 @@ function checkFuel()
     if turtle.getFuelLevel() < turtle.getFuelLimit() then
         local could_refuel = false
         local i = 1
-        
+
         while not (i > inventory_space) do
             turtle.select(i)
             if turtle.refuel(0) then
@@ -81,70 +82,74 @@ function keepItem()
   end        
 end
 
+function move(direction)
+  local move_dir = {
+    [0] = turtle.forward,
+    [1] = turtle.down,
+    [2] = turtle.up
+  }
+
+  local detect_dir = {
+    [0] = turtle.detect,
+    [1] = turtle.detectDown,
+    [2] = turtle.detectUp
+  }
+
+  local dig_direction = {
+    [0] = turtle.dig,
+    [1] = turtle.digDown,
+    [2] = turtle.digUp
+  }
+
+  if detect_dir[direction]() then
+    dig_direction[direction]()
+    turtle.suck()
+  end
+  move_dir[direction]()
+end
+
 function mine(forward, left, down)
+  --[[
   if checkFuel() == false then
+    print("Not enough fuel!")
     return
   end
+  ]]
 
-  local last_turn_was_left = false
+  while downs < down do
 
-  while downs <= down do
-    while turns <= left do
-      while forwards <= forward do
-        if turtle.detect() == true then
-          turtle.dig()
-          if turtle.suck() then
-            if keep_stone then 
-              keepItem()          
-            end
-          else
-            returnToStorage()         
-          end
-        end
-        turtle.forward()
+    local turn_left = true
+    while lefts < left do
+
+      while forwards < forward do
+        move(0)
         forwards = forwards + 1
       end
 
-      if not last_turn_was_left then
-        turtle.turnLeft()
-        if turtle.detect() == true then
-          turtle.dig()
-          
-        end
-        turtle.forward()
+      if turn_left then
         turtle.turnLeft()
       else
         turtle.turnRight()
-        if turtle.detect() == true then
-          turtle.dig()
-          if turtle.suck() then
-            if keep_stone then 
-              keepItem()          
-            end
-          else
-            returnToStorage()         
-          end
-        end
-        turtle.forward()
-        turtle.turnRight()  
       end
-      turns = turns + 1
+
+      move(0)
+      
+      if turn_left then
+        turtle.turnLeft()
+      else
+        turtle.turnRight()
+      end
+
+      turn_left = not turn_left
+      distance_from_start = distance_from_start + 1
+
     end
 
-    turtle.digDown()
-    if turtle.suckDown() then
-      if keep_stone then 
-        keepItem()          
-      end
-    else
-      returnToStorage()         
-    end
-    turtle.down()
-    turtle.turnLeft()
+    move(1)
+    distance_from_start = distance_from_start + 1
 
     downs = downs + 1
   end
-
 end
 
 -- start desired process 
@@ -155,7 +160,7 @@ function start()
     read()
 
     print("Should the miner keep stone items? y / n")
-    if read() == 'y' then
+    if read() == "y" then
       keep_stone = true
     end
 
